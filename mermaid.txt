@@ -1,0 +1,41 @@
+erDiagram
+    REGIONS ||--|{ PROPERTIES : contains 
+    REGIONS ||--|{ AGENTS : contains 
+    PROPERTIES ||--o{ SALES : places
+    AGENTS ||--o{ SALES : places
+    SALES ||--o{ CLIENTS : places
+    REGIONS {
+        INT region_id
+        STRING region_name
+        STRING city
+    }
+    PROPERTIES {
+        INT property_id
+        INT region_id
+        STRING property_type
+        STRING building_type
+        NUMERIC listing_price
+        DATE property_listing_date
+    }
+    AGENTS {
+        INT agent_id
+        INT region_id
+        STRING agent_name
+        STRING agent_email
+        STRING agent_contact_no
+    }
+    SALES {
+        SERIAL sales_id
+        INT agent_id
+        INT client_id
+        INT property_id
+        DATE sale_date
+        NUMERIC sale_amount
+    }
+    CLIENTS {
+        INT client_id
+        TEXT client_name 
+        TEXT client_email
+        TEXT client_contact_no
+        TEXT client_address
+    }
