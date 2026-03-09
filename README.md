@@ -129,13 +129,18 @@ re_agency_schema/
 ## How to run this project
 
 1. Create the database and table
+```sql
 psql -d postgres (insert any postgres database) -f re_agency_schema.sql
+```
 
 2. Insert sample dataset 
+```sql
 psql -d re_agency_db -f re_dataset.sql
-
+```
 3. Run analytics queries
+```sql
 psql -d re_agency_db -f re_analytics.sql
+```
 
 ## Skills Demonstrated
 
