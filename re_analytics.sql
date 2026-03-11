@@ -42,8 +42,10 @@ ORDER BY total_generated_revenue DESC;
 
 -- Monthly revenue trends
 WITH monthly_revenue AS (
-  SELECT
-     date_trunc('month', sale_date) AS month_year
+  SELECT 
+    -- Gets the month of sales_date 
+    date_trunc('month', sale_date) AS month_year
+    -- Gets the sum of all total sales to get the monthly revenue
     , SUM(sale_amount) AS total_sales
   FROM sales
   GROUP BY month_year
@@ -51,19 +53,21 @@ WITH monthly_revenue AS (
 
 SELECT
   -- Formats the date_trunc for the results
-  to_char(month_year, 'FMMonth YYYY')
+  to_char(month_year, 'FMMonth YYYY') AS month
   , total_sales
-  -- Uses the LAG function to solve for revenue growth. It 
+  -- Uses the LAG function to subtract the current month from the previous month to get data for revenue growth. 
   , total_sales - LAG(total_sales) OVER (ORDER BY month_year ASC) AS revenue_growth
 FROM monthly_revenue;
  
 --====================
---  AGENT PERFORMANCE |
--- =================== 
+-- AGENT PERFORMANCE |
+--==================== 
 
 -- Which agents generate the most revenue
 SELECT
-  a.agent_name
+  a.agent_id
+  , a.agent_name
+  -- Gets the total SUM of all sales to organize the agents by total revenue
   , SUM(s.sale_amount) AS total_revenue
 FROM agents AS a
 INNER JOIN sales AS s
@@ -73,11 +77,11 @@ GROUP BY
   , a.agent_name
 ORDER BY total_revenue DESC;
 
-
 -- Agent Ranking (By total sales)
 WITH agent_ranking AS (
   SELECT
     a.agent_name
+      -- Collects the total sales by getting the sum of all sale amounts
     , SUM(s.sale_amount) AS total_sales
     -- Ranks agents according to the total sales they bring into the agency
     , RANK() OVER (ORDER BY SUM(s.sale_amount) DESC) agent_rank
@@ -93,4 +97,75 @@ SELECT agent_name, total_sales, agent_rank
 FROM agent_ranking;
 
 -- Which agents close the highest-value deals on average?
+SELECT 
+  a.agent_name
+  -- Averages out all agent sales
+  , AVG(s.sale_amount) AS average_agent_sales
+FROM agents AS a
+INNER JOIN sales AS s
+  ON a.agent_id = s.agent_id
+GROUP BY
+  a.agent_id
+  , a.agent_name
+ORDER BY average_agent_sales DESC;
 
+--======================
+-- PROPERTY PERFORMANCE |
+--======================
+
+-- Property types that sell the highest prices on average
+SELECT
+  property_type
+  -- Collects the average listing price for each property type
+  , AVG(listing_price) AS average_listing_price
+FROM properties
+GROUP BY property_type
+ORDER BY average_listing_price DESC;
+
+
+-- Average time it takes for a property to sell
+WITH average_sale_time AS (
+  SELECT 
+    p.property_id
+    -- Subtracts the total dates between the sale_date and the listing_date
+    -- This is done so we cann collect all days between listing and sale
+    , (s.sale_date - p.listing_date) AS days_difference
+  FROM properties AS p
+  INNER JOIN sales AS s
+    ON p.property_id = s.property_id
+)
+
+SELECT
+  -- Rounds the average so we can get an accurate number of total days on how long it takes to make a sale 
+  ROUND(AVG(days_difference)) AS days_to_sell
+FROM average_sale_time;
+
+-- How many properties are sold vs still unsold?
+SELECT
+  -- Counts all the rows within the sale_date. This doesn't count any of the nulls
+  COUNT(s.sale_date) AS properties_sold
+  -- Subtracts the total count (including nulls) with the properties sold
+  , COUNT(*) - COUNT(s.sale_date) AS properties_unsold
+FROM properties AS p
+-- Left join is included as it combines all rows of both tables, letting us figure out the properties not included in SALES
+LEFT JOIN sales AS s
+  ON p.property_id = s.property_id;
+
+--=================
+-- CLIENT INSIGHTS|
+--=================
+-- Which clients are responsible for the highest-value purchases?
+WITH highest_client_purchases AS (
+  SELECT
+    c.client_id
+    , c.client_name
+    , s.sale_amount 
+  FROM sales AS s
+  INNER JOIN clients AS c
+    ON s.client_id = c.client_id 
+) 
+
+SELECT client_name, SUM(sale_amount) AS client_purchases
+FROM highest_client_purchases
+GROUP BY client_name
+ORDER BY client_purchases DESC;
