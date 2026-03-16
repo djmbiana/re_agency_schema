@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS clients (
 );
 
 CREATE TABLE IF NOT EXISTS sales (
-  sales_id SERIAL, 
+  sales_id INT GENERATED ALWAYS AS IDENTITY, 
   agent_id INT NOT NULL,
   client_id INT NOT NULL,
   property_id INT NOT NULL,
