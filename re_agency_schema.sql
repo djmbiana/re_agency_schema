@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS agents (
   region_id INT NOT NUll,
   agent_name VARCHAR(100) NOT NULL,
   agent_email VARCHAR(100) NOT NULL,
-  agent_contact_no VARCHAR(100) NOT NULL,
+  agent_contact_no VARCHAR(20) CHECK (agent_contact_no ~ '^[0-9]{10,11}$') NOT NULL,
+  commission_rate NUMERIC(4,2) CHECK (commission_rate > 0 AND commission_rate <= 100) NOT NULL,
   PRIMARY KEY (agent_id),
 
   CONSTRAINT fk_agents_region
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS properties (
   building_type VARCHAR(100) NOT NULL,
   listing_price NUMERIC(12,2) NOT NULL,
   listing_date DATE NOT NULL,
+  property_status VARCHAR(10) CHECK (property_status IN ('unsold', 'sold','reserved')) DEFAULT 'unsold',
   PRIMARY KEY (property_id),
 
   CONSTRAINT fk_properties_region
@@ -44,7 +46,7 @@ CREATE TABLE IF NOT EXISTS clients (
   client_id INT GENERATED ALWAYS AS IDENTITY,
   client_name VARCHAR(100) NOT NULL,
   client_email VARCHAR(100),
-  client_contact_no VARCHAR(100),
+  client_contact_no VARCHAR(20) CHECK (client_contact_no ~ '^[0-9]{10,11}$') NOT NULL,
   client_address VARCHAR(100),
   PRIMARY KEY (client_id)
 );

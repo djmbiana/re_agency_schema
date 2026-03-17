@@ -58,6 +58,22 @@ SELECT
   -- Uses the LAG function to subtract the current month from the previous month to get data for revenue growth. 
   , total_sales - LAG(total_sales) OVER (ORDER BY month_year ASC) AS revenue_growth
 FROM monthly_revenue;
+
+-- Running revenue
+WITH running_monthly AS (
+  SELECT 
+    date_trunc('month', sale_date) AS month_yr
+    , SUM(sale_amount) AS monthly_revenue
+    FROM sales
+    GROUP BY month_yr
+)
+
+SELECT
+  to_char(month_yr, 'FMMonth YYYY') AS month
+  , monthly_revenue
+  -- Takes the SUM per month and accumulates it overtime to show total revenue growth 
+  , SUM(monthly_revenue) OVER(ORDER BY month_yr) AS running_total
+FROM running_monthly;
  
 --====================
 -- AGENT PERFORMANCE |
@@ -109,6 +125,43 @@ GROUP BY
   , a.agent_name
 ORDER BY average_agent_sales DESC;
 
+-- Agent performance vs regional average
+WITH agent_totals AS (
+  SELECT a.agent_name
+  , SUM(s.sale_amount) AS total_sale 
+  , r.region_name
+  FROM regions  AS r
+  INNER JOIN agents AS a
+    ON r.region_id = a.region_id
+  INNER JOIN sales AS s
+    ON a.agent_id = s.agent_id
+  GROUP BY a.agent_name, r.region_name
+)
+
+SELECT agent_name
+       , total_sale
+       , region_name
+       , AVG(total_sale) OVER (PARTITION BY region_name) AS regional_average
+FROM agent_totals
+ORDER BY total_sale DESC;
+
+-- Comissions earned per agent
+
+WITH agent_commission AS (
+  SELECT a.agent_name
+         , SUM(s.sale_amount) AS sale_amount 
+         , a.commission_rate
+  FROM agents AS a
+  INNER JOIN sales AS s
+    ON a.agent_id = s.agent_id
+  GROUP BY agent_name, commission_rate
+)
+
+SELECT agent_name
+       , ((sale_amount * commission_rate) / 100)::numeric(12,2) AS commission_earnings
+FROM agent_commission
+ORDER BY commission_earnings DESC;
+
 --======================
 -- PROPERTY PERFORMANCE |
 --======================
@@ -140,16 +193,29 @@ SELECT
   ROUND(AVG(days_difference)) AS days_to_sell
 FROM average_sale_time;
 
--- How many properties are sold vs still unsold?
-SELECT
-  -- Counts all the rows within the sale_date. This doesn't count any of the nulls
-  COUNT(s.sale_date) AS properties_sold
-  -- Subtracts the total count (including nulls) with the properties sold
-  , COUNT(*) - COUNT(s.sale_date) AS properties_unsold
-FROM properties AS p
--- Left join is included as it combines all rows of both tables, letting us figure out the properties not included in SALES
-LEFT JOIN sales AS s
-  ON p.property_id = s.property_id;
+-- How many properties are sold, unsold, or reserved?
+SELECT COUNT(CASE WHEN property_status ='sold' THEN 1 ELSE NULL END) AS sold_properties 
+       , COUNT(CASE WHEN property_status ='unsold' THEN 1 ELSE NULL END) AS unsold_properties
+       , COUNT(CASE WHEN property_status ='reserved' THEN 1 ELSE NULL END) AS reserved_properties
+FROM properties;
+
+
+-- PROPERTY CONVERSION RATES
+
+WITH property_conversion AS (
+  SELECT r.region_name
+  , COUNT(*) AS properties_per_region
+  , COUNT(CASE WHEN property_status = 'sold' THEN 1 ELSE NULL END) AS properties_sold
+  FROM regions AS r
+  INNER JOIN properties AS p
+    ON r.region_id = p.region_id
+  GROUP BY region_name
+)
+
+SELECT region_name
+         , CONCAT(((properties_sold * 100.0) / properties_per_region)::numeric(12,0), '%') AS properties_sold_percentage
+FROM property_conversion
+ORDER BY properties_sold DESC;
 
 --=================
 -- CLIENT INSIGHTS|
