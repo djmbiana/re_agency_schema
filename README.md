@@ -20,6 +20,7 @@ TOC:
     - [Client Insights](#client-insights)
   - [Project structure](#project-structure)
   - [How to run this project](#how-to-run-this-project)
+  - [Key Insights](#key-insights)
   - [Skills Demonstrated](#skills-demonstrated)
 
 
@@ -44,29 +45,31 @@ erDiagram
     REGIONS ||--|{ AGENTS : contains 
     PROPERTIES ||--o{ SALES : places
     AGENTS ||--o{ SALES : places
-    SALES ||--o{ CLIENTS : places
+    CLIENTS ||--o{ SALES : makes
     REGIONS {
         INT region_id
-        STRING region_name
-        STRING city
+        VARCHAR(100) region_name
+        VARCHAR(100) city
     }
     PROPERTIES {
         INT property_id
         INT region_id
-        STRING property_type
-        STRING building_type
+        VARCHAR(100) property_type
+        VARCHAR(100) building_type
         NUMERIC listing_price
         DATE property_listing_date
+        VARCHAR(10) property_status
     }
     AGENTS {
         INT agent_id
         INT region_id
-        STRING agent_name
-        STRING agent_email
-        STRING agent_contact_no
+        VARCHAR(100) agent_name
+        VARCHAR(100) agent_email
+        VARCHAR(20) agent_contact_no
+        NUMERIC commission_rate
     }
     SALES {
-        SERIAL sales_id
+        INT sales_id
         INT agent_id
         INT client_id
         INT property_id
@@ -75,10 +78,10 @@ erDiagram
     }
     CLIENTS {
         INT client_id
-        TEXT client_name 
-        TEXT client_email
-        TEXT client_contact_no
-        TEXT client_address
+        VARCHAR(100) client_name 
+        VARCHAR(100) client_email
+        VARCHAR(20) client_contact_no
+        VARCHAR(100) client_address
     }
 ```
 
@@ -131,44 +134,65 @@ Metric used:
 Month by month revenue growth
 ```
 
+4. What is the total running revenue of the business?
+Purpose: To check if the business can hit its financial goals within the year
+Metric used:
+```
+SUM(sale_amount) + SUM(sale_previous_month)
+```
+
 ### Agent Performance
-4. Which agents generate the most revenue?
+5. Which agents generate the most revenue?
 Purpose: Identifies the top performing agents based on total sales generated
 Metric used:
 ```
 SUM(sale_amount) per agent
 ```
 
-5. How do agents rank against each other (based on their total sales)?
+6. How do agents rank against each other (based on their total sales)?
 Purpose: Ranks agents by revenue to evaluate performance across all agents
 Metric used:
 ```
 RANK() by total sales
 ```
 
-6. Which agents close the highest-value deals on average?
+7. Which agents close the highest-value deals on average?
 Purpose: Determines the agents who typically handle higher-value property transactions.
 Metric used:
 ```
 AVG(sale_amount) per agent
 ```
 
+8. How do agents perform compared to the regional average?
+Purpose: Determine the performance of an agent compared to the sale average per region
+
+```
+AVG(sale_amount) per agent and per region
+```
+
+9. How much commissions do agents earn per sale?
+Purpose: Checks how much commissions an agent recieves each time they make a sale
+
+```
+(sale_amount * commission_rate) / 100 per agent
+```
+
 ### Property Performance
-7. Which property types sell for the highest prices on average?
+10. Which property types sell for the highest prices on average?
 Purpose: Identifies which property categories have the highest market prices.
 Metric used:
 ```
 AVG(listing_price) per property_type
 ```
 
-8. How long does it take for a property to sell on average?
+11. How long does it take for a property to sell on average?
 Purpose: Measures the average time properties stay on the market before being sold.
 Metric used:
 ```
 sale_date - listing_date
 ```
 
-9. How many propeties are sold vs unsold?
+12. How many propeties are sold vs unsold?
 Purpose: Takes note of property sold vs unsold.
 Metric used:
 ```
@@ -176,8 +200,15 @@ Sold properties
 Unsold properties
 ```
 
+13. What is the percentage of sold properties per region?
+Purpose: Analayze the conversion rates of properties per region
+Metric used:
+```
+COUNT(sold_properties) / COUNT(all_properties) 
+```
+
 ### Client Insights
-10. Which clients have spent the most on property purchases?
+14. Which clients have spent the most on property purchases?
 Purpose: Identifies high value customers based on total property purchase amounts.
 Metric used:
 ```
@@ -208,6 +239,12 @@ psql -d re_agency_db -f re_dataset.sql
 ```sql
 psql -d re_agency_db -f re_analytics.sql
 ```
+
+## Key Insights
+- NCR is the region which brings in most business revenue with a total sales average of ₱30,285,714 and sells its property at around 70%
+- It takes an average of 74 days to make a sale. With that information, there can be strategies created to lower this
+- Monthly revenue has been inconsistent, averaging ₱32,495,625.00 per month between March 2023 and June 2024 
+-  Region II generates the lowest revenue with an amount of ₱18,730,000. This indicates that they need to market and increase revenue in that region.
 
 ## Skills Demonstrated
 

@@ -18,9 +18,7 @@ FROM sales;
 
 -- Regions which generate the most revenue
 WITH region_revenue AS (
-  SELECT 
-    r.region_id 
-    , r.region_name 
+  SELECT r.region_name 
     , s.sale_amount
   FROM regions AS r
   INNER JOIN properties AS p
@@ -29,14 +27,10 @@ WITH region_revenue AS (
     ON p.property_id = s.property_id
 )
 
-SELECT 
-  region_id
-  , region_name
+SELECT region_name
   , SUM(sale_amount) AS total_generated_revenue
 FROM region_revenue
-GROUP BY
-  region_id
-  , region_name
+GROUP BY region_name
 ORDER BY total_generated_revenue DESC;
 
 
