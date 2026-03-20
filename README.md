@@ -20,11 +20,13 @@ TOC:
     - [Client Insights](#client-insights)
   - [Project structure](#project-structure)
   - [How to run this project](#how-to-run-this-project)
+  - [Key Metrics](#key-metrics)
   - [Key Insights](#key-insights)
   - [Skills Demonstrated](#skills-demonstrated)
 
 
 ## Project Overview
+
 This PostgreSQL database simulates a real estate database and makes use of SQL to analyze sales performance, property inventory, and agent performance metrics.
 
 The dataset models a real-estate business with information on:
@@ -103,6 +105,7 @@ Stores information about clients who purchased/are going to purchase properties.
 Represents completed sales, linking agents, clients, and properties together
 
 ## Entity Relationships
+
 - A **region** can have multiple properties and agents.
 - A **property** belongs to only one region
 - An **agent** belongs to one region
@@ -127,7 +130,7 @@ Metric used:
 SUM(sale_amount) by region
 ```
 
-3. How is the monthly revenue for the agency?
+3. How does monthly revenue change over time? 
 Purpose: Analyzes whether the agency’s revenue is increasing or decreasing over time. (over a monthly period)
 Metric used:
 ```
@@ -138,7 +141,7 @@ Month by month revenue growth
 Purpose: To check if the business can hit its financial goals within the year
 Metric used:
 ```
-SUM(sale_amount) + SUM(sale_previous_month)
+Running total of revenue overtime using cumulative aggregation
 ```
 
 ### Agent Performance
@@ -146,21 +149,21 @@ SUM(sale_amount) + SUM(sale_previous_month)
 Purpose: Identifies the top performing agents based on total sales generated
 Metric used:
 ```
-SUM(sale_amount) per agent
+Total sum of all agents sales
 ```
 
 6. How do agents rank against each other (based on their total sales)?
 Purpose: Ranks agents by revenue to evaluate performance across all agents
 Metric used:
 ```
-RANK() by total sales
+RANK() by total agent sales
 ```
 
 7. Which agents close the highest-value deals on average?
 Purpose: Determines the agents who typically handle higher-value property transactions.
 Metric used:
 ```
-AVG(sale_amount) per agent
+Average sale amount per agent
 ```
 
 8. How do agents perform compared to the regional average?
@@ -171,7 +174,7 @@ AVG(sale_amount) per agent and per region
 ```
 
 9. How much commissions do agents earn per sale?
-Purpose: Checks how much commissions an agent recieves each time they make a sale
+Purpose: Checks how much commissions an agent receives each time they make a sale
 
 ```
 (sale_amount * commission_rate) / 100 per agent
@@ -192,7 +195,7 @@ Metric used:
 sale_date - listing_date
 ```
 
-12. How many propeties are sold vs unsold?
+12. How many properties are sold vs unsold?
 Purpose: Takes note of property sold vs unsold.
 Metric used:
 ```
@@ -201,7 +204,7 @@ Unsold properties
 ```
 
 13. What is the percentage of sold properties per region?
-Purpose: Analayze the conversion rates of properties per region
+Purpose: Analyze the conversion rates of properties per region
 Metric used:
 ```
 COUNT(sold_properties) / COUNT(all_properties) 
@@ -240,11 +243,22 @@ psql -d re_agency_db -f re_dataset.sql
 psql -d re_agency_db -f re_analytics.sql
 ```
 
+## Key Metrics
+
+- Total Revenue
+- Revenue by Region
+- Monthly Revenue Trend
+- Average Days on Market
+- Agent Performance (Total & Average Sales)
+- Property Conversion Rate
+
 ## Key Insights
-- NCR is the region which brings in most business revenue with a total sales average of ₱30,285,714 and sells its property at around 70%
-- It takes an average of 74 days to make a sale. With that information, there can be strategies created to lower this
-- Monthly revenue has been inconsistent, averaging ₱32,495,625.00 per month between March 2023 and June 2024 
--  Region II generates the lowest revenue with an amount of ₱18,730,000. This indicates that they need to market and increase revenue in that region.
+
+- NCR generates the highest revenue, significantly outperforming other regions. This suggests strong demand and higher property values in the area which makes it a priority for premium listings and further investment for the business.
+- Properties have an average of 74 days to sell which indicates slow turnover for the agency. This may suggest that current pricing is inefficient or low property demand. The business can explore by adjusting pricing strategies or improving marketing efforts to reduce time on the market. 
+- Monthly revenue shows fluctuations, averaging ₱32.5M. However, it lacks a consistent upward trend. This instability may indicate seasonal demand or inconsistent sales. This suggests a need for more stable lead generation, sales strategies or improving on marketing.
+-  Region II generates the lowest revenue amongst all regions, showing underperformance. This shows that there are opportunities to increase marketing efforts, improving property offers, or reassessing pricing strategies to boost sales within the area.
+- The top-performing agents (by average sales value) are concentrated in NCR, suggesting that agent skills & expertise may be a key driver of the region's success. Applying their strategies or mentorship to underperforming regions could help improve overall performance.
 
 ## Skills Demonstrated
 
